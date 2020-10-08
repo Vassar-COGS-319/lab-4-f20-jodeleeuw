@@ -14,6 +14,8 @@ model.data <- data.frame(x = runif(20, min = -10, max = 10))
 model.data <- model.data %>%
   mutate(y = rnorm(20, mean = intercept + slope * x, sd = 1))
 
+plot(y ~ x, data=model.data)
+
 # write a function like the one that calculated RMSE, but this time calculate likelihood
 # for the set of parameters. to do this, assume that each data point is normally distributed
 # around the line with sd = 1. you'll set the mean of the normal distribution to be the model's
@@ -28,10 +30,22 @@ calculate.likelihood <- function(parameters){
   intercept <- parameters[1]
   slope <- parameters[2]
   
-  # fill in the rest...
+  log.likelihood <- model.data %>%
+    mutate(y.pred = intercept + slope * x) %>%
+    mutate(log.p = dnorm(y, mean=y.pred, sd=1, log=T)) %>%
+    pull(log.p) %>%
+    sum()
+  
+  return(-log.likelihood)
 }
 
 # run optim() to find the best fitting parameters and plot a line showing the best model fit.
 # you should be able to borrow this code almost verbatim from previous parts of the lab,
 # though you can rewrite it from scratch if you want to reinforce your understanding.
 
+result <- optim(calculate.likelihood, par = c(0,0))
+
+pred.intercept <- result$par[1]
+pred.slope <- result$par[2]
+
+abline(a=pred.intercept, b=pred.slope)

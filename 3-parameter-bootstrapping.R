@@ -31,6 +31,14 @@ calculate.rmse <- function(parameters){
   
   # copy/paste your solution from pt. 2 here!
   
+  rmse <- model.data %>%
+    mutate(y.pred = intercept + slope*x) %>%
+    mutate(sq.err = (y.pred - y)^2) %>%
+    pull(sq.err) %>%
+    mean() %>%
+    sqrt()
+  
+  return(rmse)
 }
 
 # now we use optim to find the best fitting parameters (minimize RMSE)
@@ -60,11 +68,12 @@ abline(a=best.intercept, b=best.slope, col="blue")
 # add a column to the model.data data frame that calculates the regular (non-squared) error for the
 # best fitting slope and intercept
 
+model.data <- model.data %>% mutate(y.pred = best.intercept + best.slope * x) %>%
+  mutate(error = y.pred - y)
 
-  
 # now plot the error on the y axis and the x value on the x axis
 
-
+plot(error ~ x, data = model.data)
 
 # this plot shows us how the errors in the model are distributed around the model's prediction.
 # if all of the data were perfectly predicted by the model, then we would observe a horizontal line
@@ -74,8 +83,7 @@ abline(a=best.intercept, b=best.slope, col="blue")
 # then we can see that this plot is a pretty useful tool. we can just calculate the standard deviation of the
 # model's errors to get an estimate.
 
-
-
+best.sd <- sd(model.data$error)
 
 # the true SD of the model was 1.0. we should be reasonably close to that with this method.
 
@@ -88,34 +96,49 @@ abline(a=best.intercept, b=best.slope, col="blue")
 generate.bootstrap.sample <- function(){
   
   # create a data frame with X values
-  
+  model.data <- data.frame(x = runif(20, min = -10, max = 10))
   
   # then generate random Y values with noise around the X values.
- 
-  # and then return the data frame 
+  model.data <- model.data %>%
+    mutate(y = rnorm(20, mean = best.intercept + best.slope * x, sd = best.sd))
   
+  return(model.data)
 }
 
 # STEP 3: fit the model to the new data
 
 generate.bootstrap.parameters <- function(){
-  
   data <- generate.bootstrap.sample()
- 
+  
   # add code here to fit the model (copying what we did before, but using this new data)
   # this will require writing a new copy of the calculate.rmse function and then running
   # optim to get the parameters
   
   calculate.rmse.bootstrap <- function(parameters){
+    intercept <- parameters[1]
+    slope <- parameters[2]
     
+    # copy/paste your solution from pt. 2 here!
+    
+    rmse <- data %>%
+      mutate(y.pred = intercept + slope*x) %>%
+      mutate(sq.err = (y.pred - y)^2) %>%
+      pull(sq.err) %>%
+      mean() %>%
+      sqrt()
+    
+    return(rmse)
   }
   
   # now we use optim to find the best fitting parameters (minimize RMSE)
   
-
+  result <- optim(calculate.rmse.bootstrap, par = c(0,0))
   
-  intercept <- NA # replace this with your estimated intercept variable
-  slope <- NA # replace this with your estimate slope variable
+  best.intercept <- result$par[1]
+  best.slope <- result$par[2]
+  
+  intercept <- best.intercept #NA # replace this with your estimated intercept variable
+  slope <- best.slope #NA # replace this with your estimate slope variable
   
   return(list(intercept=intercept, slope=slope))
 }
@@ -134,8 +157,3 @@ hist(parameter.estimates$slope)
 # these histograms give us one metric of uncertainty in our parameter estimates.
 # what happens to the parameter estimate uncertainty as you increase the sample size of the original data (and thus
 # the sample size of the bootstrap estimates)?
-
-
-
-
-

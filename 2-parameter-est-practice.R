@@ -30,12 +30,21 @@ calculate.rmse <- function(parameters){
   # fill in the rest...
   # this should be almost exactly the same as the code you just wrote in pt 1
   
+  rmse <- model.data %>%
+    mutate(y.pred = intercept + slope * x) %>%
+    mutate(error = (y.pred - y)^2) %>%
+    pull(error) %>%
+    mean() %>%
+    sqrt()
+  
+  return(rmse)
+  
   # at the end use return(rmse) to return the RMSE
 }
 
 # now we use optim to find the best fitting parameters (minimize RMSE)
 
-result <- optim(calculate.rmse, par = c(0,0), control=list(trace=TRUE))
+result <- optim(calculate.rmse, par = c(3,0.5), control=list(trace=TRUE))
 
 # we can extract the parameters from optim, and plot the best fitting line
 

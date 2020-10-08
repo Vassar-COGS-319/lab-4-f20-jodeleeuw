@@ -28,7 +28,20 @@ abline(a = intercept, b=slope, col="red")
 #   - finding the square error for each data point [predicted - data]^2
 #   - taking the mean of the square errors, and then taking the sqrt of the mean.
 
+rmse <- model.data %>%
+  mutate(y.pred = intercept + slope * x) %>%
+  mutate(error = (y.pred - y)^2) %>%
+  pull(error) %>%
+  mean() %>%
+  sqrt()
 
+# or...
+
+model.data <- model.data %>%
+  mutate(y.pred = intercept + slope * x) %>%
+  mutate(error = (y.pred - y)^2) 
+
+rmse <- sqrt(mean(model.data$error))
 
 
 # the answer is 0.935
@@ -70,6 +83,12 @@ responses$expected <- c(dax.prob, gex.prob, zof.prob)
 
 # use mutate() and then sum() to calculate the chi squared for this data.
 
+chi.squared <- responses %>%
+  mutate(error = (Freq - expected*100)^2 / (expected*100)) %>%
+  pull(error) %>%
+  sum()
+
+chi.squared
 
 
 

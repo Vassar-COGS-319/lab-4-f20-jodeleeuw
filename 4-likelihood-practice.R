@@ -1,3 +1,5 @@
+library(dplyr)
+
 # let's imagine that we scaled up Fisher's tea tasting experiment
 # and had 10 people each taste 8 cups of tea, counting the number 
 # of correct responses for each person.
@@ -13,6 +15,10 @@ tea.tasting.data <- data.frame(
 # the binomial distribution for this, specifically the dbinom() function, which gives the
 # density of the binomial distribution.
 
+x <- 0:8
+y <- dbinom(x, 8, 0.9)
+
+plot(x,y)
 # the dbinom() function takes three arguments:
 # dbinom(x, size, prob)
 # x is the value that you are getting the probability of
@@ -25,6 +31,10 @@ tea.tasting.data <- data.frame(
 # joint probability of the data given the model. hint: the prod() function is helpful!
 
 
+tea.tasting.data.likelihood <- tea.tasting.data %>%
+  mutate(prob = dbinom(correct.responses, 8, 0.5)) %>%
+  pull(prob) %>%
+  prod()
 
 
 # second: generalize your code above into a function that takes a single argument, theta,
@@ -32,6 +42,12 @@ tea.tasting.data <- data.frame(
 
 calculate.likelihood <- function(theta){
 
+  tea.tasting.data.likelihood <- tea.tasting.data %>%
+    mutate(prob = dbinom(correct.responses, 8, theta)) %>%
+    pull(prob) %>%
+    prod()
+  
+  return(tea.tasting.data.likelihood)
   
 }
 
@@ -40,6 +56,13 @@ calculate.likelihood <- function(theta){
 # hint: create an array of X values from 0 to 1 in small steps, then use sapply() or a for loop to
 # get the corresponding array of Y values.
 
+x <- seq(0,1,0.01)
+y <- numeric()
+for(i in 1:length(x)){
+  y[i] <- calculate.likelihood(x[i])
+}
+
+plot(x,y)
 
 
 
